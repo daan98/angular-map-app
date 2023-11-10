@@ -10,6 +10,9 @@ import { MarkersPageComponent } from './pages/markers-page/markers-page.componen
 import { PropertiesPageComponent } from './pages/properties-page/properties-page.component';
 import { ZoomRangePageComponent } from './pages/zoom-range-page/zoom-range-page.component';
 
+import * as mapboxgl from 'mapbox-gl';
+
+(mapboxgl as any).accessToken = 'pk.eyJ1IjoiZGFhbjk4IiwiYSI6ImNsb2oxZ2h4ODA3Y2oya3MyaG00eTV4cHoifQ.47fiUvjLNqqryVi-5C-PUA';
 
 @NgModule({
   declarations: [
