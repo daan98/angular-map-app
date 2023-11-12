@@ -1,6 +1,6 @@
 import { AfterViewInit, Component, ElementRef, ViewChild } from '@angular/core';
 import { LngLat, Map, Marker } from 'mapbox-gl';
-import { MarkerInterface } from '../../Interface';
+import { MarkerInterface, PlainMarkerInterface } from '../../Interface';
 
 @Component({
   templateUrl: './markers-page.component.html',
@@ -31,9 +31,9 @@ export class MarkersPageComponent implements AfterViewInit {
     /* this.mapControlContainer = document.getElementsByClassName('mapboxgl-control-container');
     this.mapControlContainer[0].setAttribute('style', 'display: none'); */
 
-    const marker = new Marker({ color }).setLngLat(this.currentLngLat).addTo(this.map);
+    // const marker = new Marker({ color }).setLngLat(this.currentLngLat).addTo(this.map);
 
-    // this.addMarker();
+    this.readFromLocalStorage();
   }
 
   public createMarker() {
@@ -59,12 +59,20 @@ export class MarkersPageComponent implements AfterViewInit {
       coordinates: lngLat,
       marker
     });
+
+    this.saveToLocalStorage();
+
+    marker.on('dragend', (e) => {
+      console.log('dragend before saving in local storage: ', e);
+      this.saveToLocalStorage()
+      console.log('drag ended')
+    });
   }
 
   public deleteMarker(index : number) {
-    console.log('deleteMarker : ', index);
     this.markers[index].marker.remove();
     this.markers.splice(index, 1);
+    this.saveToLocalStorage();
   }
 
   public flyTo(pointTo : MarkerInterface) {
@@ -76,5 +84,30 @@ export class MarkersPageComponent implements AfterViewInit {
       zoom: 14,
       center: pointTo.marker.getLngLat()
     })
+  }
+
+  public saveToLocalStorage() : void {
+    const plainMarkers : PlainMarkerInterface[] = this.markers.map(({color, marker}) => {
+      return {
+        color: color,
+        lngLat : marker.getLngLat().toArray()
+      }
+    });
+
+    localStorage.setItem('plainMarker', JSON.stringify(plainMarkers));
+  }
+
+  public readFromLocalStorage(): void {
+    const plainMarkersString : string = localStorage.getItem('plainMarker') ?? '[]';
+    // '... : PlainMarkerInterface[]' ONLY USED BECAUSE WE KNOW PROPERTIES WILL ALWAYS BE THE ONES PlainMarkerInterface HAS
+    const plainMarkers : PlainMarkerInterface[] = JSON.parse(plainMarkersString);
+
+    plainMarkers.forEach(({color, lngLat}) => {
+      const [ lng, lat ] = lngLat;
+      const coords = new LngLat(lng, lat);
+
+      this.addMarker(coords, color);
+    });
+    console.log('readFromLocalStorage plainMarkers: ', plainMarkers);
   }
 }
